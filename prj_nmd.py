@@ -87,6 +87,10 @@ class GameDatabase:
         # Tworzenie obiektów Card
         for i (text, tags) in enumerate(doubts_data):
             self.cards["doubts"].append(Card.i, "doubts", text, tags)
+        for i, (text, tags) in enumerate(more_data):
+            self.cards["more"].append(Card.i, "more", text, tags)
+        for i, (text, tags) in enumerate(no_data):
+           self.cards["no"].append(Card.i, "no", text, tags)
         # uzupełnij dla reszty kategorii
 
 
@@ -115,4 +119,5 @@ class NoMoreDoubtsGame:
 
 if __name__ == "__main__":
     game = NoMoreDoubtsGame()
+
     game.run()
