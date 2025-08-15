@@ -98,6 +98,53 @@ class GameDatabase:
 
 class LogicAnalyzer:
     """System analizy logiki historii oparty na tagach"""
+    
+    @staticmethod
+    def calculate_story_score(doubts_card: Card, more_card: Card, no_card: Card) -> Tuple[int, str]:
+        """
+        Oblicza punkty za spójność logiczną historii
+        Zwraca (punkty, uzasadnienie)
+        """
+        all_tags = doubts_card.tags + more_card.tags + no_card.tags
+        common_tags = set(doubts_card.tags) & set(more_card.tags) & set(no_card.tags)
+        pair_matches = (
+            len(set(doubts_card.tags) & set(more_card.tags)) +
+            len(set(doubts_card.tags) & set(no_card.tags)) +
+            len(set(more_card.tags) & set(no_card.tags))
+        )
+        
+        # Obliczanie punktów
+        score = 0
+        justification = []
+        
+        # Punkty za wspólne tagi wszystkich kart
+        if len(common_tags) >= 2:
+            score += 5
+            justification.append(f"Doskonała spójność tematyczna ({', '.join(common_tags)})")
+        elif len(common_tags) == 1:
+            score += 3
+            justification.append(f"Dobra spójność tematyczna ({list(common_tags)[0]})")
+        
+        # Punkty za pary kart
+        if pair_matches >= 4:
+            score += 3
+            justification.append("Świetne połączenia między kartami")
+        elif pair_matches >= 2:
+            score += 2
+            justification.append("Dobre połączenia między kartami")
+        elif pair_matches >= 1:
+            score += 1
+            justification.append("Podstawowe połączenia między kartami")
+        
+        # Bonus za specjalne kombinacje
+        
+        
+        # Minimalne punkty
+        if score == 0:
+            score = 1
+            justification.append("Podstawowe punkty za próbę")
+        
+        return score, " | ".join(justification)
 
 
 
@@ -121,3 +168,4 @@ if __name__ == "__main__":
     game = NoMoreDoubtsGame()
 
     game.run()
+
