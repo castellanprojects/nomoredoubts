@@ -135,7 +135,12 @@ class LogicAnalyzer:
         elif pair_matches >= 1:
             score += 1
             justification.append("Podstawowe połączenia między kartami")
-        
+        if "mystery" in doubts_cards.tags and "supernatural" in more_cards.tags and "science" in no_cards.tags:
+            score += 2
+        justification.append("Bonus: Rozwiązanie naukowe zagadki supernatural")
+        if "people" in all_tags and "routine" in all_tags:
+           score += 1
+        justification.append("Bonus: Historia o ludzkich zachowaniach")
         # Bonus za specjalne kombinacje
         
         
@@ -168,4 +173,5 @@ if __name__ == "__main__":
     game = NoMoreDoubtsGame()
 
     game.run()
+
 
