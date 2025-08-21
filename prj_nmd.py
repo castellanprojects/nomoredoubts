@@ -157,6 +157,46 @@ class LogicAnalyzer:
 
 class PlayerStats:
     """System statystyk gracza"""
+    
+    def __init__(self):
+        self.total_games = 0
+        self.total_score = 0
+        self.best_score = 0
+        self.best_story = ""
+        self.favorite_tags = {}
+        self.history = []
+    
+    def update(self, score: int, story: str, tags: List[str]):
+        """Aktualizacja statystyk po grze"""
+        self.total_games += 1
+        self.total_score += score
+        
+        if score > self.best_score:
+            self.best_score = score
+            self.best_story = story
+        
+        # Śledzenie ulubionych tagów
+        for tag in tags:
+            self.favorite_tags[tag] = self.favorite_tags.get(tag, 0) + 1
+        
+        # Historia gier
+        self.history.append({
+            'date': datetime.now().isoformat(),
+            'score': score,
+            'story': story
+        })
+        
+        # Zachowaj tylko ostatnie 20 gier
+        if len(self.history) > 20:
+            self.history = self.history[-20:]
+
+    def get_average_score(self) -> float:
+        """Średni wynik"""
+        return
+    
+    def get_top_tags(self, limit=5) -> List[Tuple[str, int]]:
+        """Najpopularniejsze tagi gracza""" ## Wykorzystaj sorted!
+        return 
 
 
 
@@ -173,5 +213,6 @@ if __name__ == "__main__":
     game = NoMoreDoubtsGame()
 
     game.run()
+
 
 
