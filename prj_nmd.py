@@ -192,11 +192,26 @@ class PlayerStats:
 
     def get_average_score(self) -> float:
         """Średni wynik"""
-        return
+        if len(self.scores) == 0:  
+        return 0.0
+    return sum(self.scores) / len(self.scores) 
+        
     
     def get_top_tags(self, limit=5) -> List[Tuple[str, int]]:
-        """Najpopularniejsze tagi gracza""" ## Wykorzystaj sorted!
-        return 
+        """Najpopularniejsze tagi gracza""" 
+            all_tags = []   
+    for card_category in ['doubts', 'more', 'no']:
+        for card in getattr(self, card_category):  
+            all_tags.extend(card.tags)    
+    tag_counts = {}
+    for tag in all_tags:
+        if tag in tag_counts:
+            tag_counts[tag] += 1
+        else:
+            tag_counts[tag] = 1    
+    sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)    
+    return sorted_tags[:limit]
+        ## Wykorzystaj sorted!       
 
 
 
@@ -213,6 +228,7 @@ if __name__ == "__main__":
     game = NoMoreDoubtsGame()
 
     game.run()
+
 
 
 
