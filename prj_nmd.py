@@ -19,10 +19,9 @@ class Card:
     def __str__(self):
         return f"[{self.category.upper()}] {self.text}"
 
-
 class GameDatabase:
     """Baza danych z kartami i systemem tagowania"""
-
+    
     def __init__(self):
         self.cards = {
             "doubts": [],
@@ -31,11 +30,9 @@ class GameDatabase:
         }
         self._initialize_cards()
     
-        self.initialize_cards()
-    
-    def initialize_cards(self):
+    def _initialize_cards(self):
         """Inicjalizacja bazy kart z tagami tematycznymi"""
-
+        
         # DOUBTS - sytuacje wymagające wyjaśnienia
         doubts_data = [
             ("Dlaczego wszyscy mieszkańcy małego miasteczka noszą tylko czerwone buty?", 
@@ -83,18 +80,16 @@ class GameDatabase:
             ("Badacze testują nową teorię naukową", ["science", "people", "mystery"]),
             ("To skutek działania nowego leku na alergię", ["medicine", "science", "people"]),
         ]
-
+        
         # Tworzenie obiektów Card
-        for i (text, tags) in enumerate(doubts_data):
-            self.cards["doubts"].append(Card.i, "doubts", text, tags)
+        for i, (text, tags) in enumerate(doubts_data):
+            self.cards["doubts"].append(Card(i, "doubts", text, tags))
+        
         for i, (text, tags) in enumerate(more_data):
-            self.cards["more"].append(Card.i, "more", text, tags)
+            self.cards["more"].append(Card(i, "more", text, tags))
+        
         for i, (text, tags) in enumerate(no_data):
-           self.cards["no"].append(Card.i, "no", text, tags)
-        # uzupełnij dla reszty kategorii
-
-
-
+            self.cards["no"].append(Card(i, "no", text, tags))
 
 class LogicAnalyzer:
     """System analizy logiki historii oparty na tagach"""
@@ -135,14 +130,15 @@ class LogicAnalyzer:
         elif pair_matches >= 1:
             score += 1
             justification.append("Podstawowe połączenia między kartami")
-        if "mystery" in doubts_cards.tags and "supernatural" in more_cards.tags and "science" in no_cards.tags:
-            score += 2
-        justification.append("Bonus: Rozwiązanie naukowe zagadki supernatural")
-        if "people" in all_tags and "routine" in all_tags:
-           score += 1
-        justification.append("Bonus: Historia o ludzkich zachowaniach")
-        # Bonus za specjalne kombinacje
         
+        # Bonus za specjalne kombinacje
+        if "mystery" in doubts_card.tags and "supernatural" in more_card.tags and "science" in no_card.tags:
+            score += 2
+            justification.append("Bonus: Rozwiązanie naukowe zagadki supernatural")
+        
+        if "people" in all_tags and "routine" in all_tags:
+            score += 1
+            justification.append("Bonus: Historia o ludzkich zachowaniach")
         
         # Minimalne punkty
         if score == 0:
@@ -150,10 +146,6 @@ class LogicAnalyzer:
             justification.append("Podstawowe punkty za próbę")
         
         return score, " | ".join(justification)
-
-
-
-
 
 class PlayerStats:
     """System statystyk gracza"""
@@ -189,46 +181,187 @@ class PlayerStats:
         # Zachowaj tylko ostatnie 20 gier
         if len(self.history) > 20:
             self.history = self.history[-20:]
-
+    
     def get_average_score(self) -> float:
         """Średni wynik"""
-        if len(self.scores) == 0:  
-        return 0.0
-    return sum(self.scores) / len(self.scores) 
-        
+        return self.total_score / max(1, self.total_games)
     
     def get_top_tags(self, limit=5) -> List[Tuple[str, int]]:
-        """Najpopularniejsze tagi gracza""" 
-            all_tags = []   
-    for card_category in ['doubts', 'more', 'no']:
-        for card in getattr(self, card_category):  
-            all_tags.extend(card.tags)    
-    tag_counts = {}
-    for tag in all_tags:
-        if tag in tag_counts:
-            tag_counts[tag] += 1
-        else:
-            tag_counts[tag] = 1    
-    sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)    
-    return sorted_tags[:limit]
-        ## Wykorzystaj sorted!       
-
-
-
-
+        """Najpopularniejsze tagi gracza"""
+        return sorted(self.favorite_tags.items(), key=lambda x: x[1], reverse=True)[:limit]
 
 class NoMoreDoubtsGame:
-    """Główna klasa gry - korzysta z powyższych funkcji"""
+    """Główna klasa gry"""
+    
+    def __init__(self):
+        self.db = GameDatabase()
+        self.analyzer = LogicAnalyzer()
+        self.stats_file = "nmd_stats.json"
+        self.stats = self._load_stats()
+    
+    def _load_stats(self) -> PlayerStats:
+        """Wczytywanie statystyk gracza"""
+        if os.path.exists(self.stats_file):
+            try:
+                with open(self.stats_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    stats = PlayerStats()
+                    stats.__dict__.update(data)
+                    return stats
+            except:
+                pass
+        return PlayerStats()
+    
+    def _save_stats(self):
+        """Zapisywanie statystyk gracza"""
+        try:
+            with open(self.stats_file, 'w', encoding='utf-8') as f:
+                json.dump(self.stats.__dict__, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"Błąd zapisywania statystyk: {e}")
+    
+    def display_menu(self):
+        """Główne menu gry"""
+        print("\n" + "="*60)
+        print("🎮 NO MORE DOUBTS - Digital Edition 🎮")
+        print("="*60)
+        print("1. 🎯 Nowa gra")
+        print("2. 📊 Statystyki")
+        print("3. 📚 Historia gier")
+        print("4. ❓ Zasady gry")
+        print("5. 🚪 Wyjście")
+        print("="*60)
+    
+    def display_rules(self):
+        """Wyświetlanie zasad gry"""
+        print("\n" + "📖 ZASADY GRY" + "="*48)
+        print("""
+🎯 CEL: Stwórz logiczną historię łącząc karty z trzech kategorii
 
+📋 KATEGORIE KART:
+• DOUBTS (niebieskie) - zagadkowe sytuacje wymagające wyjaśnienia
+• MORE (żółte) - dodatkowe szczegóły i okoliczności  
+• NO (czerwone) - pewne odpowiedzi i wyjaśnienia
 
+🎲 ROZGRYWKA:
+1. Otrzymujesz po 3 losowe karty z każdej kategorii
+2. Wybierasz po 1 karcie z każdej kategorii
+3. Układasz historię w kolejności: DOUBTS → MORE → NO
+4. System ocenia logikę Twojej historii (0-10+ punktów)
 
+🏆 PUNKTACJA:
+• Wspólne tagi między kartami = więcej punktów
+• Spójność tematyczna = bonusowe punkty
+• Specjalne kombinacje = dodatkowe bonusy
 
+💾 POSTĘP: Gra zapisuje Twoje statystyki i najlepsze historie!
+        """)
+        input("\nNaciśnij Enter, aby wrócić do menu...")
+    
+    def play_game(self):
+        """Główna pętla rozgrywki"""
+        print("\n" + "🎮 NOWA GRA" + "="*50)
+        
+        # Losowanie kart
+        hand = {
+            "doubts": random.sample(self.db.cards["doubts"], 3),
+            "more": random.sample(self.db.cards["more"], 3),
+            "no": random.sample(self.db.cards["no"], 3)
+        }
+        
+        print("Twoja ręka kart:\n")
+        
+        # Wyświetlanie kart z numeracją
+        for category in ["doubts", "more", "no"]:
+            print(f"🔸 {category.upper()}:")
+            for i, card in enumerate(hand[category], 1):
+                print(f"   {i}. {card.text}")
+            print()
+        
+        # Wybór kart przez gracza
+        selected_cards = {}
+        for category in ["doubts", "more", "no"]:
+            while True:
+                try:
+                    choice = int(input(f"Wybierz kartę {category.upper()} (1-3): ")) - 1
+                    if 0 <= choice < 3:
+                        selected_cards[category] = hand[category][choice]
+                        break
+                    else:
+                        print("Wybierz numer od 1 do 3!")
+                except ValueError:
+                    print("Wpisz poprawny numer!")
+        
+        # Tworzenie historii
+        print("\n" + "📖 TWOJA HISTORIA" + "="*44)
+        print(f"❓ ZAGADKA: {selected_cards['doubts'].text}")
+        print(f"➕ SZCZEGÓŁY: {selected_cards['more'].text}")
+        print(f"✅ ROZWIĄZANIE: {selected_cards['no'].text}")
+        
+        # Analiza logiki
+        score, justification = self.analyzer.calculate_story_score(
+            selected_cards['doubts'],
+            selected_cards['more'], 
+            selected_cards['no']
+        )
+        
+        print(f"\n🏆 WYNIK: {score} punktów")
+        print(f"💡 UZASADNIENIE: {justification}")
+        
+        # Aktualizacja statystyk
+        story_text = f"{selected_cards['doubts'].text} | {selected_cards['more'].text} | {selected_cards['no'].text}"
+        all_tags = selected_cards['doubts'].tags + selected_cards['more'].tags + selected_cards['no'].tags
+        
+        self.stats.update(score, story_text, all_tags)
+        self._save_stats()
+        
+        # Motywacyjna wiadomość
+        if score >= 8:
+            print("\n🌟 Doskonała historia! Jesteś prawdziwym storytellerem!")
+        elif score >= 5:
+            print("\n👏 Świetna robota! Historia ma sens i jest ciekawa!")
+        elif score >= 3:
+            print("\n👍 Niezła próba! Następnym razem pójdzie jeszcze lepiej!")
+        else:
+            print("\n💪 Nie poddawaj się! Każda historia to nauka!")
+        
+        input("\nNaciśnij Enter, aby wrócić do menu...")
+    
+    def display_stats(self):
+        """Wyświetlanie statystyk gracza"""
+        print("\n" + "📊 TWOJE STATYSTYKI" + "="*42)
+        print(f"🎮 Rozegrane gry: {self.stats.total_games}")
+        print(f"🏆 Najlepszy wynik: {self.stats.best_score}")
+        print(f"📈 Średni wynik: {self.stats.get_average_score():.1f}")
+        print(f"🎯 Suma punktów: {self.stats.total_score}")
+        
+        if self.stats.best_story:
+            print(f"\n⭐ NAJLEPSZA HISTORIA:")
+            print(f"   {self.stats.best_story}")
+        
+        top_tags = self.stats.get_top_tags()
+        if top_tags:
+            print(f"\n🏷️  ULUBIONE TEMATY:")
+            for tag, count in top_tags:
+                print(f"   • {tag}: {count} razy")
+        
+        input("\nNaciśnij Enter, aby wrócić do menu...")
+    
+    def display_history(self):
+        """Wyświetlanie historii gier"""
+        print("\n" + "📚 HISTORIA GIER" + "="*45)
+        
+        if not self.stats.history:
+            print("Nie rozegrałeś jeszcze żadnej gry!")
+        else:
+            for i, game in enumerate(reversed(self.stats.history[-10:]), 1):
+                date = game['date'][:19].replace('T', ' ')
+                print(f"{i:2}. [{date}] {game['score']} pkt: {game['story'][:80]}...")
+        
+        input("\nNaciśnij Enter, aby wrócić do menu...")
+    
+    ## TUTAJ
 
 if __name__ == "__main__":
     game = NoMoreDoubtsGame()
-
     game.run()
-
-
-
-
