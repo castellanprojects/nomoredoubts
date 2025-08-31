@@ -360,26 +360,34 @@ class NoMoreDoubtsGame:
         
         input("\nNaciśnij Enter, aby wrócić do menu...")
     
-    ## TUTAJ
-    while True:
-        self.display_menu()
-        choice = input("Wybierz opcję (1-5): ")
-        
-        if choice == "1":
-            self.play_game()
-        elif choice == "2":
-            self.display_stats()
-        elif choice == "3":
-            self.display_history()
-        elif choice == "4":
-            self.display_rules()
-        elif choice == "5":
-            print("\n👋 Dzięki za grę! Do zobaczenia!")
-            break
-        else:
-            print("❌ Nieprawidłowy wybór! Wybierz opcję 1-5.")
+    def run(self):
+        """Główna pętla aplikacji"""
+        while True:
+            self.display_menu()
+            
+            try:
+                choice = input("Wybierz opcję (1-5): ").strip()
+                
+                if choice == "1":
+                    self.play_game()
+                elif choice == "2":
+                    self.display_stats()
+                elif choice == "3":
+                    self.display_history()
+                elif choice == "4":
+                    self.display_rules()
+                elif choice == "5":
+                    print("\n👋 Dzięki za grę! Do zobaczenia!")
+                    break
+                else:
+                    print("❌ Nieprawidłowy wybór! Wybierz opcję 1-5.")
+            
+            except KeyboardInterrupt:
+                print("\n\n👋 Do widzenia!")
+                break
+            except Exception as e:
+                print(f"❌ Wystąpił błąd: {e}")
 
 if __name__ == "__main__":
     game = NoMoreDoubtsGame()
     game.run()
-
